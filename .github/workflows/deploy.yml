@@ -17,8 +17,8 @@ concurrency:
 
 env:
   # 独自ドメインを付けたら SITE_URL をそのドメインに、BASE_PATH を / にする
-  SITE_URL: https://tatsushik0720-maker.github.io
-  BASE_PATH: /ai-raku-note
+  SITE_URL: https://ai-raku-note.com
+  BASE_PATH: /
 
 jobs:
   build:
