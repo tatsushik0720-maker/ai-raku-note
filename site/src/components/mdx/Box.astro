@@ -1,0 +1,62 @@
+---
+// 囲み。type で色が変わる
+// point：要点 / warn：注意 / good：うまくいったこと / memo：補足
+interface Props {
+	type?: 'point' | 'warn' | 'good' | 'memo';
+	title?: string;
+}
+const { type = 'point', title } = Astro.props;
+const defaults = { point: 'ポイント', warn: '注意', good: 'うまくいったこと', memo: 'メモ' };
+---
+
+<div class={`box ${type}`}>
+	<p class="box-title">{title ?? defaults[type]}</p>
+	<div class="box-body"><slot /></div>
+</div>
+
+<style>
+	.box {
+		margin: 1.6rem 0;
+		padding: 0.9rem 1.1rem;
+		border-radius: var(--radius);
+		border: 1px solid;
+	}
+	.box-title {
+		margin: 0 0 0.3rem !important;
+		font-weight: 700;
+		font-size: 0.92rem;
+	}
+	.box-body :global(p:last-child),
+	.box-body :global(ul:last-child),
+	.box-body :global(ol:last-child) {
+		margin-bottom: 0;
+	}
+	.point {
+		background: var(--accent-soft);
+		border-color: #b9d6f2;
+	}
+	.point .box-title {
+		color: var(--accent);
+	}
+	.warn {
+		background: var(--warn-soft);
+		border-color: #f0d68a;
+	}
+	.warn .box-title {
+		color: var(--warn);
+	}
+	.good {
+		background: var(--good-soft);
+		border-color: #b4dfc0;
+	}
+	.good .box-title {
+		color: var(--good);
+	}
+	.memo {
+		background: var(--bg-soft);
+		border-color: var(--line);
+	}
+	.memo .box-title {
+		color: var(--ink-soft);
+	}
+</style>

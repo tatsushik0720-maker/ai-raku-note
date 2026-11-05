@@ -1,0 +1,9 @@
+---
+import { SITE_DESCRIPTION } from '../../consts';
+import ListPage from '../../layouts/ListPage.astro';
+import { getPosts } from '../../lib/posts';
+
+const posts = await getPosts();
+---
+
+<ListPage title="記事一覧" description={SITE_DESCRIPTION} heading="記事一覧" posts={posts} />

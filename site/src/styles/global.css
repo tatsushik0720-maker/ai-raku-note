@@ -1,0 +1,196 @@
+/* 読みやすさ優先の、飾りの少ないデザイン。日本語の長文を読む前提 */
+:root {
+	--ink: #1f2328;
+	--ink-soft: #59636e;
+	--line: #e3e6ea;
+	--bg: #ffffff;
+	--bg-soft: #f6f8fa;
+	--accent: #0b6bcb;
+	--accent-soft: #e8f2fc;
+	--good: #1a7f37;
+	--good-soft: #e9f6ec;
+	--warn: #9a6700;
+	--warn-soft: #fff6dc;
+	--cta: #e8590c;
+	--cta-dark: #c64a08;
+	--text: 700px;
+	--wide: 1040px;
+	--radius: 10px;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	-webkit-text-size-adjust: 100%;
+}
+
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--ink);
+	font-family:
+		'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic UI', 'Meiryo',
+		system-ui, sans-serif;
+	font-size: 17px;
+	line-height: 1.9;
+	letter-spacing: 0.02em;
+	word-wrap: break-word;
+	overflow-wrap: anywhere;
+}
+
+main {
+	max-width: var(--wide);
+	margin: 0 auto;
+	padding: 1.5rem 1rem;
+}
+
+a {
+	color: var(--accent);
+}
+
+h1,
+h2,
+h3,
+h4 {
+	line-height: 1.45;
+	letter-spacing: 0.01em;
+}
+
+img {
+	max-width: 100%;
+	height: auto;
+}
+
+code {
+	padding: 0.1em 0.35em;
+	background: var(--bg-soft);
+	border: 1px solid var(--line);
+	border-radius: 4px;
+	font-size: 0.88em;
+}
+
+pre {
+	padding: 1rem;
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	overflow-x: auto;
+	line-height: 1.6;
+	font-size: 0.88rem;
+}
+
+pre > code {
+	padding: 0;
+	border: none;
+	background: none;
+}
+
+hr {
+	border: none;
+	border-top: 1px solid var(--line);
+	margin: 2rem 0;
+}
+
+/* 記事本文 */
+.prose {
+	max-width: var(--text);
+	margin: 0 auto;
+}
+
+.prose h2 {
+	margin: 3rem 0 1rem;
+	padding: 0.5rem 0.9rem;
+	font-size: 1.35rem;
+	background: var(--bg-soft);
+	border-left: 5px solid var(--accent);
+	border-radius: 4px;
+}
+
+.prose h3 {
+	margin: 2.2rem 0 0.8rem;
+	padding-bottom: 0.3rem;
+	font-size: 1.15rem;
+	border-bottom: 2px solid var(--line);
+}
+
+.prose p {
+	margin: 0 0 1.4rem;
+}
+
+.prose ul,
+.prose ol {
+	padding-left: 1.4rem;
+	margin: 0 0 1.4rem;
+}
+
+.prose li {
+	margin-bottom: 0.3rem;
+}
+
+.prose blockquote {
+	margin: 0 0 1.4rem;
+	padding: 0.6rem 1rem;
+	color: var(--ink-soft);
+	border-left: 4px solid var(--line);
+	background: var(--bg-soft);
+}
+
+.prose img {
+	display: block;
+	margin: 1.5rem auto;
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+}
+
+/* 表：スマホでは横にスクロール */
+.prose table {
+	display: block;
+	width: 100%;
+	overflow-x: auto;
+	border-collapse: collapse;
+	margin: 0 0 1.6rem;
+	font-size: 0.92rem;
+	line-height: 1.6;
+}
+
+.prose th,
+.prose td {
+	padding: 0.6rem 0.75rem;
+	border: 1px solid var(--line);
+	vertical-align: top;
+	min-width: 6.5em;
+}
+
+.prose thead th {
+	background: var(--accent-soft);
+	white-space: nowrap;
+}
+
+.prose tbody tr:nth-child(even) td {
+	background: #fbfcfd;
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+@media (max-width: 720px) {
+	body {
+		font-size: 16px;
+		line-height: 1.85;
+	}
+	.prose h2 {
+		font-size: 1.2rem;
+	}
+}

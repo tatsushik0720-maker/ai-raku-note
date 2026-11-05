@@ -1,0 +1,98 @@
+---
+import { u } from '../lib/url';
+// 記事の一覧ページ（トップ・記事一覧・カテゴリ）の型
+import type { CollectionEntry } from 'astro:content';
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import PostCard from '../components/PostCard.astro';
+import { CATEGORIES } from '../consts';
+
+interface Props {
+	title: string;
+	description: string;
+	heading: string;
+	lead?: string;
+	posts: CollectionEntry<'blog'>[];
+	current?: string;
+}
+const { title, description, heading, lead, posts, current } = Astro.props;
+---
+
+<!doctype html>
+<html lang="ja">
+	<head>
+		<BaseHead title={title} description={description} />
+	</head>
+	<body>
+		<Header />
+		<main>
+			<section class="intro">
+				<h1>{heading}</h1>
+				{lead && <p>{lead}</p>}
+			</section>
+
+			<nav class="cats" aria-label="カテゴリ">
+				<a href={u('/blog/')} class:list={{ on: !current }}>すべて</a>
+				{Object.entries(CATEGORIES).map(([key, c]) => (
+					<a href={u(`/blog/category/${key}/`)} class:list={{ on: current === key }}>
+						{c.name}
+					</a>
+				))}
+			</nav>
+
+			{posts.length > 0 ? (
+				<div class="grid">
+					{posts.map((p) => (
+						<PostCard post={p} />
+					))}
+				</div>
+			) : (
+				<p class="empty">まだ記事がありません。</p>
+			)}
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	.intro h1 {
+		margin: 0.5rem 0;
+		font-size: 1.6rem;
+	}
+	.intro p {
+		margin: 0 0 1.5rem;
+		max-width: var(--text);
+		color: var(--ink-soft);
+		font-size: 0.95rem;
+	}
+	.cats {
+		display: flex;
+		gap: 0.4rem;
+		overflow-x: auto;
+		padding-bottom: 0.4rem;
+		margin-bottom: 1.5rem;
+	}
+	.cats a {
+		flex-shrink: 0;
+		padding: 0.3rem 0.85rem;
+		font-size: 0.85rem;
+		color: var(--ink-soft);
+		text-decoration: none;
+		border: 1px solid var(--line);
+		border-radius: 999px;
+	}
+	.cats a.on {
+		color: #fff;
+		background: var(--accent);
+		border-color: var(--accent);
+	}
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+		gap: 1.1rem;
+	}
+	.empty {
+		color: var(--ink-soft);
+	}
+</style>

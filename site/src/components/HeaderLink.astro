@@ -1,0 +1,26 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = HTMLAttributes<'a'>;
+const { href, ...props } = Astro.props;
+const isActive = typeof href === 'string' && Astro.url.pathname.startsWith(href);
+---
+
+<a href={href} class:list={{ active: isActive }} {...props}><slot /></a>
+<style>
+	a {
+		display: inline-block;
+		padding: 0.5rem 0.6rem;
+		font-size: 0.9rem;
+		color: var(--ink-soft);
+		text-decoration: none;
+		border-radius: 6px;
+	}
+	a:hover {
+		background: var(--bg-soft);
+	}
+	a.active {
+		color: var(--accent);
+		font-weight: 700;
+	}
+</style>

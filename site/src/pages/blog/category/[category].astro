@@ -1,0 +1,30 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { CATEGORIES, type CategoryKey } from '../../../consts';
+import ListPage from '../../../layouts/ListPage.astro';
+import { getPosts } from '../../../lib/posts';
+
+export async function getStaticPaths() {
+	const posts = await getPosts();
+	return (Object.keys(CATEGORIES) as CategoryKey[]).map((key) => ({
+		params: { category: key },
+		props: { key, posts: posts.filter((p) => p.data.category === key) },
+	}));
+}
+
+interface Props {
+	key: CategoryKey;
+	posts: CollectionEntry<'blog'>[];
+}
+const { key, posts } = Astro.props;
+const cat = CATEGORIES[key];
+---
+
+<ListPage
+	title={cat.name}
+	description={cat.description}
+	heading={cat.name}
+	lead={cat.description}
+	posts={posts}
+	current={key}
+/>

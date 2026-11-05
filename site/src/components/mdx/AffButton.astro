@@ -1,0 +1,42 @@
+---
+// 申し込み・購入のボタン。広告リンクは必ずこれで張る（rel="sponsored" が付く）
+interface Props {
+	href: string;
+	label: string;
+	note?: string; // ボタンの下の小さな補足（「30日間の返金保証あり」など）
+}
+const { href, label, note } = Astro.props;
+---
+
+<div class="aff">
+	<a href={href} target="_blank" rel="sponsored noopener">{label}</a>
+	{note && <p>{note}</p>}
+</div>
+
+<style>
+	.aff {
+		margin: 1.8rem 0;
+		text-align: center;
+	}
+	a {
+		display: inline-block;
+		width: min(100%, 400px);
+		padding: 0.9rem 1.2rem;
+		font-weight: 700;
+		color: #fff;
+		text-decoration: none;
+		background: var(--cta);
+		border-radius: 999px;
+		box-shadow: 0 3px 0 var(--cta-dark);
+		transition: transform 0.1s ease;
+	}
+	a:active {
+		transform: translateY(2px);
+		box-shadow: 0 1px 0 var(--cta-dark);
+	}
+	p {
+		margin: 0.5rem 0 0 !important;
+		font-size: 0.8rem;
+		color: var(--ink-soft);
+	}
+</style>

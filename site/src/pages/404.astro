@@ -1,0 +1,9 @@
+---
+import { u } from '../lib/url';
+import Page from '../layouts/Page.astro';
+---
+
+<Page title="ページが見つかりません" description="お探しのページは見つかりませんでした。">
+	<p>URL が変わったか、記事が削除された可能性があります。</p>
+	<p><a href={u('/blog/')}>記事一覧から探す</a></p>
+</Page>

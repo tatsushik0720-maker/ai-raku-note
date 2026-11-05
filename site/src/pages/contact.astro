@@ -1,0 +1,20 @@
+---
+import { CONTACT_FORM_URL, SITE_TITLE } from '../consts';
+import Page from '../layouts/Page.astro';
+---
+
+<Page title="お問い合わせ" description={`${SITE_TITLE}へのお問い合わせ。`}>
+	<p>記事の間違いのご指摘、ご質問、お仕事のご相談は、下のフォームからお送りください。</p>
+	{
+		CONTACT_FORM_URL ? (
+			<p>
+				<a href={CONTACT_FORM_URL} target="_blank" rel="noopener">
+					お問い合わせフォームを開く
+				</a>
+			</p>
+		) : (
+			<p>お問い合わせフォームは準備中です。</p>
+		)
+	}
+	<p>返信までに数日いただくことがあります。</p>
+</Page>

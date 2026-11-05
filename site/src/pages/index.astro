@@ -1,0 +1,15 @@
+---
+import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import ListPage from '../layouts/ListPage.astro';
+import { getPosts } from '../lib/posts';
+
+const posts = await getPosts();
+---
+
+<ListPage
+	title={SITE_TITLE}
+	description={SITE_DESCRIPTION}
+	heading={SITE_TITLE}
+	lead={SITE_DESCRIPTION}
+	posts={posts}
+/>
