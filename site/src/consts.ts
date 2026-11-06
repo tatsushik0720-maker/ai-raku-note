@@ -10,7 +10,7 @@ export const AUTHOR_BIO =
 	'大学生。YouTube の解説動画づくりやスマホアプリの開発を、AI に手伝わせながら続けています。このブログでは、自分で試してうまくいったこと・つまずいたことをそのまま書きます。';
 
 // お問い合わせフォームの URL（Google フォームなど）。決まるまでは空にしておく
-export const CONTACT_FORM_URL = '';
+export const CONTACT_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSd3dZLUpvKRI9c6gcchsEOBz3KbnDOLUxGHpF0FwAT-5PPOuA/viewform';
 
 // Google アナリティクス（GA4）の測定 ID（G- から始まる）。空なら計測コードを出さない。
 // 本番のビルドでだけ出すので、手元の確認（npm run dev）は数に入らない

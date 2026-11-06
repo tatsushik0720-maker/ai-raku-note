@@ -1,20 +1,66 @@
 ---
 import { CONTACT_FORM_URL, SITE_TITLE } from '../consts';
+import { u } from '../lib/url';
 import Page from '../layouts/Page.astro';
+
+// Google フォームの「送信」→リンクの URL（…/viewform）を consts.ts に入れると、ページに埋め込む。
+// 埋め込み用に embedded=true を付ける（ほかの引数があれば残す）
+let embedUrl = '';
+if (CONTACT_FORM_URL) {
+	const url = new URL(CONTACT_FORM_URL);
+	url.searchParams.set('embedded', 'true');
+	embedUrl = url.toString();
+}
 ---
 
 <Page title="お問い合わせ" description={`${SITE_TITLE}へのお問い合わせ。`}>
 	<p>記事の間違いのご指摘、ご質問、お仕事のご相談は、下のフォームからお送りください。</p>
 	{
-		CONTACT_FORM_URL ? (
-			<p>
-				<a href={CONTACT_FORM_URL} target="_blank" rel="noopener">
-					お問い合わせフォームを開く
-				</a>
-			</p>
+		embedUrl ? (
+			<>
+				<div class="form-frame">
+					<iframe src={embedUrl} title="お問い合わせフォーム" loading="lazy">
+						読み込んでいます…
+					</iframe>
+				</div>
+				<p class="form-note">
+					フォームは Google フォームを使っています。表示されないときは、
+					<a href={CONTACT_FORM_URL} target="_blank" rel="noopener">
+						こちらから開いてください
+					</a>
+					。
+				</p>
+			</>
 		) : (
 			<p>お問い合わせフォームは準備中です。</p>
 		)
 	}
-	<p>返信までに数日いただくことがあります。</p>
+	<p>
+		返信までに数日いただくことがあります。いただいたお名前やメールアドレスの扱いは、<a href={u('/privacy/')}>プライバシーポリシー</a>に書いています。
+	</p>
 </Page>
+
+<style>
+	.form-frame {
+		margin: 1.5rem 0 0.5rem;
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		overflow: hidden;
+		background: #fff;
+	}
+	iframe {
+		display: block;
+		width: 100%;
+		height: 1100px;
+		border: 0;
+	}
+	.form-note {
+		font-size: 0.85rem;
+		color: var(--ink-soft);
+	}
+	@media (width <= 720px) {
+		iframe {
+			height: 1300px;
+		}
+	}
+</style>
