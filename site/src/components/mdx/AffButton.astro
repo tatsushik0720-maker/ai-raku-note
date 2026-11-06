@@ -4,13 +4,15 @@ interface Props {
 	href: string;
 	label: string;
 	note?: string; // ボタンの下の小さな補足（「30日間の返金保証あり」など）
+	pixel?: string; // ASP の表示回数を数える 1×1 画像の URL（A8.net の広告コードの img の src）
 }
-const { href, label, note } = Astro.props;
+const { href, label, note, pixel } = Astro.props;
 ---
 
 <div class="aff">
 	<a href={href} target="_blank" rel="sponsored noopener">{label}</a>
 	{note && <p>{note}</p>}
+	{pixel && <img class="pixel" src={pixel} width="1" height="1" alt="" loading="lazy" />}
 </div>
 
 <style>
@@ -33,6 +35,13 @@ const { href, label, note } = Astro.props;
 	a:active {
 		transform: translateY(2px);
 		box-shadow: 0 1px 0 var(--cta-dark);
+	}
+	.pixel {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		border: 0;
+		opacity: 0;
 	}
 	p {
 		margin: 0.5rem 0 0 !important;
