@@ -12,6 +12,10 @@ export const AUTHOR_BIO =
 // お問い合わせフォームの URL（Google フォームなど）。決まるまでは空にしておく
 export const CONTACT_FORM_URL = '';
 
+// Google アナリティクス（GA4）の測定 ID（G- から始まる）。空なら計測コードを出さない。
+// 本番のビルドでだけ出すので、手元の確認（npm run dev）は数に入らない
+export const GA_MEASUREMENT_ID = '';
+
 // カテゴリ。記事の frontmatter の category はこの key のどれかにする
 export const CATEGORIES = {
 	'ai-chat': { name: 'AIチャット', description: 'Claude・ChatGPT・Gemini などの使い方と比べ方' },
