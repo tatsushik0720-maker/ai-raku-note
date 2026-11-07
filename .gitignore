@@ -10,3 +10,6 @@ dist/
 
 # note で売る原稿（有料部分を含むので公開しない）
 /note-product/
+
+# note の下書き（公開前の原稿）
+/note-drafts/
