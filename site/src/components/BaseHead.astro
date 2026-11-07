@@ -19,17 +19,32 @@ const useAnalytics = import.meta.env.PROD && GA_MEASUREMENT_ID !== '';
 
 {
 	useAnalytics && (
-		<>
-			<script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} />
-			<script is:inline define:vars={{ id: GA_MEASUREMENT_ID }}>
+		<script is:inline define:vars={{ id: GA_MEASUREMENT_ID }}>
+			// 運営者の訪問を数えない仕組み。
+			// ?notrack=1 を付けて一度開いたブラウザでは、以後ずっと計測しない（?notrack=0 で元に戻す）。
+			(function () {
+				var KEY = 'ai-raku-note:notrack';
+				var off = false;
+				try {
+					var p = new URLSearchParams(location.search).get('notrack');
+					if (p === '1') localStorage.setItem(KEY, '1');
+					if (p === '0') localStorage.removeItem(KEY);
+					off = localStorage.getItem(KEY) === '1';
+				} catch (e) {}
+				window.__notrack = off;
+				if (off) return;
+				var s = document.createElement('script');
+				s.async = true;
+				s.src = 'https://www.googletagmanager.com/gtag/js?id=' + id;
+				document.head.appendChild(s);
 				window.dataLayer = window.dataLayer || [];
-				function gtag() {
+				window.gtag = function () {
 					dataLayer.push(arguments);
-				}
+				};
 				gtag('js', new Date());
 				gtag('config', id);
-			</script>
-		</>
+			})();
+		</script>
 	)
 }
 
