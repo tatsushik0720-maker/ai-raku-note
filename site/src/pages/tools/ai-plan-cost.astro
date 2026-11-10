@@ -1,0 +1,263 @@
+---
+// AI 有料プランの月額・年額を合計する計算ツール。
+// 料金は公式ページで確かめた値。変えるときは下の PLANS と CHECKED_ON を直す。
+import Page from '../../layouts/Page.astro';
+import { u } from '../../lib/url';
+
+const CHECKED_ON = '2026年11月10日';
+
+// kind: 'usd' はドル表示（為替で円に直す）、'jpy' は円表示
+// monthly: 月額。yearly: 1年ぶんの支払い額（年払いのとき）
+const PLANS = {
+	claude: {
+		name: 'Claude',
+		cur: 'usd',
+		source: 'https://claude.com/ja/pricing',
+		options: [
+			{ id: 'none', label: '使わない', monthly: 0, yearly: 0 },
+			{ id: 'free', label: 'Free（無料）', monthly: 0, yearly: 0 },
+			{ id: 'pro-m', label: 'Pro（月払い）20ドル', monthly: 20, yearly: 240 },
+			{ id: 'pro-y', label: 'Pro（年払い）200ドル/年', monthly: 200 / 12, yearly: 200 },
+			{ id: 'max', label: 'Max 100ドル', monthly: 100, yearly: 1200 },
+			{ id: 'ultra', label: 'Ultra 200ドル', monthly: 200, yearly: 2400 },
+		],
+	},
+	chatgpt: {
+		name: 'ChatGPT',
+		cur: 'jpy',
+		source: 'https://chatgpt.com/ja-JP/pricing/',
+		options: [
+			{ id: 'none', label: '使わない', monthly: 0, yearly: 0 },
+			{ id: 'free', label: '無料版', monthly: 0, yearly: 0 },
+			{ id: 'go', label: 'Go 1,400円', monthly: 1400, yearly: 16800 },
+			{ id: 'plus', label: 'Plus 3,000円', monthly: 3000, yearly: 36000 },
+			{ id: 'pro', label: 'Pro 16,800円から', monthly: 16800, yearly: 201600 },
+		],
+	},
+	google: {
+		name: 'Google AI（Gemini）',
+		cur: 'jpy',
+		source: 'https://one.google.com/about/google-ai-plans/?hl=ja',
+		options: [
+			{ id: 'none', label: '使わない', monthly: 0, yearly: 0 },
+			{ id: 'plus', label: 'AI Plus 725円', monthly: 725, yearly: 8700 },
+			{ id: 'pro', label: 'AI Pro 2,900円', monthly: 2900, yearly: 34800 },
+			{ id: 'ultra5', label: 'AI Ultra 5x 14,500円から', monthly: 14500, yearly: 174000 },
+			{ id: 'ultra20', label: 'AI Ultra 20x 32,000円', monthly: 32000, yearly: 384000 },
+		],
+	},
+} as const;
+
+const title = 'AI 有料プランの料金 計算ツール';
+const description = `Claude・ChatGPT・Gemini の有料プランを選ぶだけで、月額と年額の合計がわかる計算ツール。料金は${CHECKED_ON}に各社の公式ページで確かめた値です。`;
+---
+
+<Page title={title} description={description}>
+	<p class="lead">
+		Claude・ChatGPT・Gemini の有料プランについて、使っている（使いたい）プランを選ぶと、月額と年額の合計が出ます。料金は{CHECKED_ON}に、各社の公式ページで確かめた値です。
+	</p>
+
+	<form id="calc" class="calc" onsubmit="return false">
+		{
+			Object.entries(PLANS).map(([key, svc]) => (
+				<div class="row">
+					<label for={`sel-${key}`}>{svc.name}</label>
+					<select id={`sel-${key}`} data-svc={key}>
+						{svc.options.map((o) => (
+							<option value={o.id}>{o.label}</option>
+						))}
+					</select>
+				</div>
+			))
+		}
+		<div class="row">
+			<label for="rate">為替（1ドル＝何円で計算するか）</label>
+			<input id="rate" type="number" inputmode="decimal" min="1" step="0.1" value="150" />
+		</div>
+		<p class="hint">
+			Claude の公式ページはドル表示なので、為替で円に直します。150円は目安です。自分が使うカードの為替に合わせて変えてください。
+		</p>
+	</form>
+
+	<div class="result" aria-live="polite">
+		<p class="total-label">合計</p>
+		<p class="total"><span id="month">0</span><span class="unit"> 円 / 月</span></p>
+		<p class="total-year">年額 <strong id="year">0</strong> 円</p>
+		<table class="breakdown">
+			<thead>
+				<tr><th>サービス</th><th>月額（円）</th><th>年額（円）</th></tr>
+			</thead>
+			<tbody id="rows"></tbody>
+		</table>
+	</div>
+
+	<h2>この計算の読み方</h2>
+	<ul>
+		<li>
+			<strong>Claude</strong>は公式ページがドル表示で、税は含まれていません（ページ末尾に「表示価格には適用される税金が含まれていません」とあります）。年払いのPro は、月あたり17ドル（200ドルを一括）です。
+		</li>
+		<li>
+			<strong>ChatGPT</strong>と<strong>Google AI</strong>は円で表示されています。税込か税抜かの注記は、取得したページ上では見つかりませんでした。実際の請求額は申し込み画面で確かめてください。
+		</li>
+		<li>
+			「〜から」と書いたプラン（ChatGPT Pro、Google AI Ultra 5x）は、利用量に応じて上のティアがあります。ここでは一番安い金額で計算しています。
+		</li>
+		<li>
+			月額に12を掛けたものが年額です。ただし Claude Pro の年払いだけは、200ドルを一括で払う値をそのまま年額にしています。
+		</li>
+		<li>
+			Google AI には、学生向けの割引や無料期間がある、とページに書かれています（Plus が1年間無料、Pro が最大70％オフ）。対象や条件は国やアカウントで変わるので、ここの計算には入れていません。
+		</li>
+	</ul>
+
+	<h2>料金の出どころ</h2>
+	<p>{CHECKED_ON}に、次の公式ページで確かめました。料金はよく変わるので、申し込む前に公式ページを見てください。</p>
+	<ul>
+		{
+			Object.values(PLANS).map((svc) => (
+				<li>
+					{svc.name}：<a href={svc.source} rel="noopener noreferrer" target="_blank">{svc.source}</a>
+				</li>
+			))
+		}
+	</ul>
+	<p>
+		間違いや古い値を見つけたら、<a href={u('/contact/')}>お問い合わせ</a>から教えてください。
+	</p>
+</Page>
+
+<style>
+	.lead {
+		margin-top: 0;
+	}
+	.calc {
+		margin: 1.4rem 0;
+		padding: 1rem 1.1rem;
+		background: var(--bg-soft);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+	}
+	.row {
+		display: grid;
+		gap: 0.25rem;
+		margin-bottom: 0.9rem;
+	}
+	.row label {
+		font-weight: 700;
+		font-size: 0.95rem;
+	}
+	select,
+	input[type='number'] {
+		width: 100%;
+		min-height: 44px;
+		padding: 0.5rem 0.7rem;
+		font: inherit;
+		font-size: 16px; /* iPhone で入力時に拡大されないようにする */
+		color: var(--ink);
+		background: var(--bg);
+		border: 1px solid #c3c9d0;
+		border-radius: 8px;
+	}
+	.hint {
+		margin: 0;
+		font-size: 0.85rem;
+		line-height: 1.7;
+		color: var(--ink-soft);
+	}
+	.result {
+		margin: 1.4rem 0 2rem;
+		padding: 1rem 1.1rem;
+		background: var(--accent-soft);
+		border: 1px solid #b9d6f2;
+		border-radius: var(--radius);
+	}
+	.result p {
+		margin: 0;
+	}
+	.total-label {
+		font-weight: 700;
+		font-size: 0.92rem;
+		color: var(--accent);
+	}
+	.total {
+		font-size: 2.2rem;
+		font-weight: 700;
+		line-height: 1.4;
+		font-variant-numeric: tabular-nums;
+	}
+	.unit {
+		font-size: 1rem;
+		font-weight: 400;
+	}
+	.total-year {
+		margin-bottom: 0.8rem !important;
+		font-variant-numeric: tabular-nums;
+	}
+	.breakdown {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.92rem;
+		background: var(--bg);
+	}
+	.breakdown th,
+	.breakdown td {
+		padding: 0.45rem 0.6rem;
+		border: 1px solid var(--line);
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+	}
+	.breakdown th:first-child,
+	.breakdown td:first-child {
+		text-align: left;
+	}
+</style>
+
+<script define:vars={{ PLANS }}>
+	const fmt = (n) => Math.round(n).toLocaleString('ja-JP');
+	const rateInput = document.getElementById('rate');
+	const rows = document.getElementById('rows');
+	const monthEl = document.getElementById('month');
+	const yearEl = document.getElementById('year');
+
+	function calc() {
+		let rate = parseFloat(rateInput.value);
+		if (!isFinite(rate) || rate <= 0) rate = 150;
+		let month = 0;
+		let year = 0;
+		const lines = [];
+		for (const [key, svc] of Object.entries(PLANS)) {
+			const sel = document.getElementById('sel-' + key);
+			const opt = svc.options.find((o) => o.id === sel.value) || svc.options[0];
+			const k = svc.cur === 'usd' ? rate : 1;
+			const m = opt.monthly * k;
+			const y = opt.yearly * k;
+			month += m;
+			year += y;
+			if (sel.value !== 'none') lines.push([svc.name, m, y]);
+		}
+		rows.innerHTML = '';
+		if (lines.length === 0) {
+			const tr = document.createElement('tr');
+			const td = document.createElement('td');
+			td.colSpan = 3;
+			td.textContent = 'プランを選ぶと、ここに内訳が出ます。';
+			tr.appendChild(td);
+			rows.appendChild(tr);
+		}
+		for (const [name, m, y] of lines) {
+			const tr = document.createElement('tr');
+			[name, fmt(m), fmt(y)].forEach((t) => {
+				const td = document.createElement('td');
+				td.textContent = t;
+				tr.appendChild(td);
+			});
+			rows.appendChild(tr);
+		}
+		monthEl.textContent = fmt(month);
+		yearEl.textContent = fmt(year);
+	}
+
+	document.querySelectorAll('select[data-svc]').forEach((s) => s.addEventListener('change', calc));
+	rateInput.addEventListener('input', calc);
+	calc();
+</script>
