@@ -1,0 +1,210 @@
+---
+title: GitHub Pages でブログを無料で公開する方法｜Astro で作ったこのブログの仕組みと、気をつける4つのこと
+description: このブログは GitHub Pages と Astro で公開していて、サーバー代は0円です。リポジトリを作ってから記事が出るまでの流れ、公開を自動にする設定ファイル、公開リポジトリならではの注意点を、実際の設定と一緒にまとめました。
+pubDate: 2026-11-13
+category: ai-coding
+tags: [GitHub Pages, Astro, ブログ, GitHub Actions]
+keyword: GitHub Pages ブログ 作り方
+pr: false
+---
+
+import Box from '../../components/mdx/Box.astro';
+
+このブログのサーバー代は、0円です。レンタルサーバーは借りていません。記事のファイルを GitHub に送ると（この「送る」を push と呼びます）、30秒から1分ほどでサイトに出ます。
+
+使っているのは、GitHub Pages と Astro の2つ。2026年11月5日の夜に土台を作り、その日のうちに最初の公開まで進みました。どういう仕組みで、どこに気をつけたかを書きます。
+
+<Box type="point" title="先に結論">
+- GitHub Pages は、公開リポジトリなら無料で使える。サイトは1GBまで、通信量の目安は月100GB
+- 記事は1本1ファイル。push すると、GitHub Actions（GitHub についている、作業を自動で進める機能）がサイトを作り直して公開する
+- 公開リポジトリなので、**push したものは誰でも読める**。下書きや数字の記録は、置き場所を分ける
+- お店や有料サービスが主なサイトには向かない、と GitHub の説明にある。始める前に読んでおく
+</Box>
+
+（GitHub Pages の条件と制限は、2026年11月12日に GitHub の公式ドキュメントで確認しました。出どころは記事の最後にまとめています）
+
+## GitHub Pages とは
+
+GitHub Pages は、GitHub に置いたファイルを、そのまま Web サイトとして公開してくれる仕組みです。GitHub は、プログラムのファイルを保存して、変更の履歴を残せるサービス。ファイルの置き場を「リポジトリ」と呼びます。
+
+無料のプラン（GitHub Free）では、公開リポジトリで GitHub Pages が使えます。非公開のリポジトリで使うには、有料のプランが要ります。
+
+公開できるのは「静的サイト」です。あらかじめ作っておいた HTML をそのまま配る形で、WordPress のようにサーバー側でプログラムを動かすことはできません。ブログなら、これで足ります。
+
+## このブログの仕組み
+
+全体は、次の4つでできています。
+
+| 役割 | 使っているもの | 料金 |
+| --- | --- | --- |
+| 記事からサイトを作る | Astro（バージョン7） | 無料 |
+| ファイルの置き場 | GitHub の公開リポジトリ | 無料 |
+| 自動で公開する | GitHub Actions と GitHub Pages | 無料 |
+| アドレス | 独自ドメイン（.com） | 1年目0円、2年目から年1,721円 |
+
+（ドメインの料金は、2026年11月6日に XServerドメインの料金ページで確認。税込）
+
+Astro は、記事のファイルから HTML のサイトを組み立てる道具です。記事は Markdown という書き方のテキストファイルで、1本につき1ファイル。管理画面はなく、ファイルを足せば記事が増えます。
+
+サイトの仕組みは、Claude Code に頼んで組みました。サイトの部品もリンクも、ただのファイルです。だから「この部品を足して」「リンクを直して」と頼みやすいんです。入れ方は、[Claude Code の始め方【Windows】](/blog/claude-code-windows-start/)に書いています。
+
+## 公開までの流れ
+
+### 1. Astro でブログの土台を作る
+
+まず、パソコンに Node.js を入れます。Astro を動かす土台になるソフトで、Astro の説明では v22.23.4 以上が要ります。そのあと、ターミナル（命令を打ち込む画面）で次のコマンドを打ちます。
+
+```bash
+npm create astro@latest
+```
+
+途中でテンプレートを聞かれます。ブログ用のテンプレートを選ぶと、記事の一覧・記事のページ・RSS（更新を知らせる仕組み）がそろった状態から始められます。
+
+手元で見るときは `npm run dev`。ブラウザで `http://localhost:4321` を開くと、公開する前のサイトを確かめられます。
+
+### 2. GitHub に公開リポジトリを作って送る
+
+GitHub でリポジトリを作り、手元のフォルダを push します。無料で GitHub Pages を使うので、リポジトリは「Public（公開）」にします。push のコマンドは、リポジトリを作った直後の画面に出ます。
+
+### 3. 公開を自動にするファイルを置く
+
+リポジトリに `.github/workflows/deploy.yml` というファイルを置きます。これが「`main` に push されたら、サイトを作って公開する」という指示書です。`main` は、リポジトリに最初からある、おおもとの置き場の名前です。
+
+このブログで動いているものは、こうなっています。
+
+```yaml
+name: 公開
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+env:
+  SITE_URL: https://ai-raku-note.com
+  BASE_PATH: /
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci
+        working-directory: site
+      - run: npm run build
+        working-directory: site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+```
+
+やっていることは3つです。リポジトリの中身を取り出す。`npm run build` でサイトを作る。できたフォルダを GitHub Pages に渡す。
+
+僕のリポジトリは、サイトの本体を `site` というフォルダに入れています。そのため `working-directory: site` の行があります。フォルダを分けていなければ、この行は要りません。
+
+`SITE_URL` と `BASE_PATH` は、公開先のアドレスです。github.io のアドレスのまま使うなら、`SITE_URL` は `https://(ユーザー名).github.io`、`BASE_PATH` は `/(リポジトリ名)` にします。
+
+<Box type="memo" title="これから作るなら、公式の書き方が短い">
+Astro の公式ドキュメントには、`withastro/action` を使う、もっと短い書き方が載っています。部品のバージョンも新しいものが書いてあります。これから作る人は、記事の最後に挙げた Astro のページから写すのが確実です。
+</Box>
+
+### 4. GitHub の設定を1か所変える
+
+リポジトリの「Settings」→「Pages」を開き、「Source」を「GitHub Actions」にします。これをしないと、指示書を置いても公開されません。
+
+ここまで済むと、push するたびに自動で公開されます。進み具合は、リポジトリの「Actions」のタブで見られます。このブログの直近5回は、28秒から1分10秒で終わっていました。
+
+## 気をつける4つのこと
+
+### 1. アドレスにリポジトリ名が入ると、リンクが切れやすい
+
+独自ドメインを付ける前のアドレスは、「(ユーザー名).github.io/(リポジトリ名)/」の形です。サイトが、アドレスの一番上ではなく1段下のフォルダに置かれます。
+
+このとき、サイト内のリンクを `/blog/` のように書くと、リポジトリ名が抜けて開けません。Astro の設定ファイルで `base` にリポジトリ名を入れ、リンクにも同じ文字を付ける必要があります。
+
+このブログでは、リンクの前にリポジトリ名を付ける小さな部品（関数）を1つ用意しました。サイト内のリンクは、全部そこを通しています。プログラムを読まない人は、下のコードを飛ばして大丈夫です。
+
+```ts
+export function u(path: string): string {
+	const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+	return `${base}${path.startsWith('/') ? path : `/${path}`}`;
+}
+```
+
+公開先のアドレスは、さっきの `deploy.yml` の `SITE_URL` と `BASE_PATH` で渡しています。独自ドメインに切り替えたとき、リポジトリの中で変えたのは、この2行と `public/CNAME` というファイルだけでした。ファイルには、ドメイン名を1行書いています。土台を送ってから50分後のことです。
+
+### 2. push したものは、誰でも読める
+
+公開リポジトリは、サイトに出していないファイルも含めて、中身を誰でも見られます。ここは WordPress と大きくちがうところです。
+
+僕は公開の2日後に、次の3つを `.gitignore`（GitHub に送らないファイルの一覧）に足しました。
+
+- アクセス数を書きためている記録
+- note で売っている原稿のフォルダ
+- 公開前の下書きのフォルダ
+
+パスワードや API キー（外のサービスを使うための合言葉）、見られて困るメモは、リポジトリに入れないでください。書きかけの記事は、ファイルの先頭に `draft: true` と書くとサイトには出ません。ただ、ファイルそのものは push すれば読めます。出したくない下書きは、push しないのが確実です。
+
+### 3. お店や有料サービスが主なサイトには向かない
+
+GitHub のドキュメントには、使い方の制限が書いてあります。数字の制限は次のとおりです。
+
+| 項目 | 制限 |
+| --- | --- |
+| 公開するサイトの大きさ | 1GBまで |
+| 通信量 | 月100GB（目安） |
+| 1回の公開にかけられる時間 | 10分まで |
+
+もう1つ、使いみちの制限があります。GitHub Pages は、次のようなサイトを動かす無料サーバーとして使うものではない、と書かれています。オンラインのお店や、商取引・有料のソフトの提供が主な目的のサイトです。パスワードやカード番号をやりとりするサイトにも使えません。
+
+広告リンクを貼ったブログがこれに当たるかどうかは、ドキュメントにはっきり書いてありません。このブログは記事が中心で、ものを売る仕組みや、カード番号のやりとりはありません。心配な人や、あとでお店のようなサイトにしたい人は、ほかの公開先も比べてください。
+
+### 4. フォームや検索は、外のサービスを借りる
+
+静的サイトなので、サーバー側で動く機能は作れません。このブログのお問い合わせページは、Google フォームを埋め込んでいます。アクセス解析は Google アナリティクス、検索への登録は Search Console です。
+
+サイトマップ（Google にページの一覧を伝えるファイル）は、Astro の `@astrojs/sitemap` を入れると自動で作られます。
+
+## 独自ドメインを付けるなら
+
+「github.io」のアドレスのままでも、ブログは始められます。ただ、アドレスは長くなり、あとで公開先を変えるとアドレスも変わります。
+
+僕は最初の日に、サイトの設定を独自ドメイン用に切り替えました。ドメインの選び方と DNS の設定、つまずいた3つのことは、[独自ドメインの取り方とどこで買うか](/blog/custom-domain-how-to/)にまとめました。サイトが開けるようになるまでに丸1日かかったので、先に読んでおくと早いです。
+
+## 次にやること
+
+1. [GitHub](https://github.com/) のアカウントを作り、公開リポジトリを1つ用意する
+2. `npm create astro@latest` でブログの土台を作り、手元で開いてみる
+3. `deploy.yml` を置いて「Source」を「GitHub Actions」に変え、最初の1本を push する
+
+あなたなら、最初の1本に何を書きますか？
+
+## 確かめたページ
+
+どれも2026年11月12日に見た内容です。制限や書き方は変わることがあるので、作る前に公式のページを見てください。
+
+- GitHub：[GitHub Pages とは](https://docs.github.com/ja/pages/getting-started-with-github-pages/what-is-github-pages)
+- GitHub：[GitHub ページの制限](https://docs.github.com/ja/pages/getting-started-with-github-pages/github-pages-limits)
+- GitHub：[GitHub Pages サイトの発行ソースの構成](https://docs.github.com/ja/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
+- Astro：[Astro をインストール](https://docs.astro.build/ja/install-and-setup/)
+- Astro：[Astro サイトを GitHub Pages にデプロイする](https://docs.astro.build/ja/guides/deploy/github/)
