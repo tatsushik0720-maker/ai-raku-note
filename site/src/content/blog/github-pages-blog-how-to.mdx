@@ -2,12 +2,14 @@
 title: GitHub Pages でブログを無料で公開する方法｜Astro で作ったこのブログの仕組みと、気をつける4つのこと
 description: このブログは GitHub Pages と Astro で公開していて、サーバー代は0円です。リポジトリを作ってから記事が出るまでの流れ、公開を自動にする設定ファイル、公開リポジトリならではの注意点を、実際の設定と一緒にまとめました。
 pubDate: 2026-11-13
+updatedDate: 2026-11-22
 category: ai-coding
 tags: [GitHub Pages, Astro, ブログ, GitHub Actions]
 keyword: GitHub Pages ブログ 作り方
-pr: false
+pr: true
 ---
 
+import AffButton from '../../components/mdx/AffButton.astro';
 import Box from '../../components/mdx/Box.astro';
 
 このブログのサーバー代は、0円です。レンタルサーバーは借りていません。記事のファイルを GitHub に送ると（この「送る」を push と呼びます）、30秒から1分ほどでサイトに出ます。
@@ -190,6 +192,15 @@ GitHub のドキュメントには、使い方の制限が書いてあります�
 「github.io」のアドレスのままでも、ブログは始められます。ただ、アドレスは長くなり、あとで公開先を変えるとアドレスも変わります。
 
 僕は最初の日に、サイトの設定を独自ドメイン用に切り替えました。ドメインの選び方と DNS の設定、つまずいた3つのことは、[独自ドメインの取り方とどこで買うか](/blog/custom-domain-how-to/)にまとめました。サイトが開けるようになるまでに丸1日かかったので、先に読んでおくと早いです。
+
+僕がこのブログのドメインを取ったのは、XServerドメインです。
+
+<AffButton
+	href="https://px.a8.net/svt/ejp?a8mat=4BGERA+FP0DV6+CO4+15ORS2"
+	label="XServerドメインの料金を見る"
+	note="はじめての方なら .com の取得が0円（2026年11月22日に料金ページで確認）"
+	pixel="https://www13.a8.net/0.gif?a8mat=4BGERA+FP0DV6+CO4+15ORS2"
+/>
 
 ## 次にやること
 
